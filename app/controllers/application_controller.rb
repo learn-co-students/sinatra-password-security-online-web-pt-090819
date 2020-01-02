@@ -8,27 +8,39 @@ class ApplicationController < Sinatra::Base
 		set :session_secret, "password_security"
 	end
 
-	get "/" do
+	get "/" do #renders an index.erb file with links to signup or login.
 		erb :index
 	end
 
-	get "/signup" do
+	get "/signup" do #renders a form to create a new user
+		#username and password
 		erb :signup
 	end
 
 	post "/signup" do
-		#your code here!
+		user = User.new(:username => params[:username], :password => params[:password])
+		if user.save
+			redirect "/login"
+		  else
+			redirect "/failure"
+		  end
 	end
 
-	get "/login" do
+	get "/login" do #form for logging in
 		erb :login
 	end
 
 	post "/login" do
-		#your code here!
+		user = User.find_by(:username => params[:username])
+		if user && user.authenticate(params[:password])
+			session[:user_id] = user.id
+			redirect "/success"
+		  else
+			redirect "/failure"
+		  end
 	end
 
-	get "/success" do
+	get "/success" do #renders a success.erb page
 		if logged_in?
 			erb :success
 		else
@@ -36,11 +48,11 @@ class ApplicationController < Sinatra::Base
 		end
 	end
 
-	get "/failure" do
+	get "/failure" do #renders a failure.erb page
 		erb :failure
 	end
 
-	get "/logout" do
+	get "/logout" do #clears the session data and redirects to the homepage.
 		session.clear
 		redirect "/"
 	end
